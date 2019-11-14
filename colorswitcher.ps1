@@ -8,11 +8,8 @@ class Game: System.Windows.Forms.Form{
     [System.Windows.Forms.Form] $form;
     [System.Drawing.Graphics] $graphics;
     Game(){
-        
         $this.initGrid();
         $this.initCanvas();
-        #$this.render();
-
     }
     [void]initGrid(){
         $squareCount = [Game]::SIZE / [Square]::SIZE;
@@ -27,14 +24,27 @@ class Game: System.Windows.Forms.Form{
     [void]initCanvas(){
         #$this.form = New-Object System.Windows.Forms.Form;
         $this.Text = 'Color Switcher';
-        $this.Size = New-Object System.Drawing.Size([Game]::SIZE,[Game]::SIZE)
+        $this.Size = New-Object System.Drawing.Size(([Game]::SIZE+100),([Game]::SIZE+100))
         $this.graphics = $this.CreateGraphics();
         #$this.form.Add_Load($this.render());
         $this.add_paint({$this.render()});
+        $this.add_click({
+            $this.handleClick($_);
+        })
         $this.ShowDialog();
-        #$appContext = New-Object System.Windows.Forms.ApplicationContext 
-        #[void][System.Windows.Forms.Application]::Run($appContext)
-        #Start-Job {$form.Activate(); $this.form.ShowDialog()};
+    }
+    [void]handleClick($event){
+        $x = [Math]::Floor($event.x/[Square]::SIZE);
+        $y = [Math]::Floor($event.y/[Square]::SIZE);
+        $this.doGridClick($x,$y);
+    }
+    [void]doGridClick($x,$y){
+        if($x-1 -ge 0) {$this.grid[($x-1),$y].toggleSet()};
+        if($y-1 -ge 0) {$this.grid[$x,($y-1)].toggleSet()};
+        if($x+1 -lt $this.grid.getLength(0)) {$this.grid[($x+1),$y].toggleSet()};
+        if($y+1 -lt $this.grid.getLength(1)) {$this.grid[$x,($y+1)].toggleSet()};
+        $this.grid[$x,$y].toggleSet();
+        $this.render();
     }
     [void]render(){
         $this.graphics.Clear([System.Drawing.Color]::White);
